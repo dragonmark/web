@@ -1,7 +1,7 @@
-(ns  ^:figwheel-always dragonmark.web.core-test
+(ns ^:figwheel-always dragonmark.web.core-test
   (:require
-   [dragonmark.web.core :as dw :refer [xf xform]]
-   [cljs.test :as t])
+    [dragonmark.web.core :as dw :refer [xf xform]]
+    [cljs.test :as t])
   (:require-macros [cljs.test :as t
                     :refer (is deftest run-tests testing)]
                    [dragonmark.web.mac :as mac]))
@@ -59,7 +59,24 @@
                                           (xf "." :*> %)) data)])
         ids (->> r rest (map second) (map :id))
         content (->> r rest (map last))]
-    (println (pr-str r))
     (t/is (= 4 (-> r second count)))
     (t/is (= (vec content) data))
     (t/is (= (vec ids) data))))
+
+(deftest
+  extra
+  "extra tests"
+
+  (t/is (= ((xf "." :*> "moo") [:div "the cow sez"])
+           [:div "the cow sez" "moo"]))
+  (t/is (= ((xf "." :*> "moo") [:div [:span] "the cow sez"])
+           [:div [:span] "the cow sez" "moo"]))
+  (t/is (= ((comp (xf "." :*> "moo") (xf "span" "Span be gone")) [:div [:span] "the cow sez"])
+           [:div "Span be gone" "the cow sez" "moo"]))
+  (t/is (= ((comp (xf "." :*> "moo") (xf "span" {:class "foo"})) [:div [:span] "the cow sez"])
+           [:div [:span {:class " foo "}] "the cow sez" "moo"]))
+  (t/is (= ((comp (xf "." :*> "moo") (xf "span" {:class> "foo"})) [:div [:span {:class "bar"}] "the cow sez"])
+           [:div [:span {:class "bar foo "}] "the cow sez" "moo"]))
+  (t/is (= ((comp (xf "." :*> "moo") (xf "span" {:class-- "bar"})) [:div [:span {:class "bar"}] "the cow sez"])
+           [:div [:span {:class ""}] "the cow sez" "moo"]))
+  )

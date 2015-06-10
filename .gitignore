@@ -13,3 +13,4 @@ doc
 web.iml
 figwheel_server.log
 compiled
+resources/test/compiled.js

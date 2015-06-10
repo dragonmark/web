@@ -440,10 +440,10 @@ re-tag #"([^\s\.#]+)(?:#([^\s\.#]+))?(?:\.([^\s#]+))?")
   (let [k (name k)
         len (count k)]
     (cond
-      (.endsWith k "--") (.substring k 0 (- len 2))
+      (gstring/endsWith k "--") (.substring k 0 (- len 2))
       (or
-        (.endsWith k ">")
-        (.endsWith k "<")) (.substring k 0 (- len 1))
+        (gstring/endsWith k ">")
+        (gstring/endsWith k "<")) (.substring k 0 (- len 1))
       :else k)))
 
 (defn- alter-map
