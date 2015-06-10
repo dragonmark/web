@@ -1,0 +1,15 @@
+*~
+target
+.lein-*
+.nrepl-*
+.repl
+out
+pom.xml
+doc
+*.asc
+.cljs_*
+.repl-*
+.idea
+web.iml
+figwheel_server.log
+compiled
