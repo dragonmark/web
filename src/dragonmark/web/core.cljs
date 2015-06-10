@@ -422,7 +422,7 @@ re-tag #"([^\s\.#]+)(?:#([^\s\.#]+))?(?:\.([^\s#]+))?")
           ))
 
       (append? cmd)
-      (.insertBefore (.-parentElement node) new-node (-.nextSibling node))
+      (.insertBefore (.-parentElement node) new-node (.-nextSibling node))
 
       (prepend? cmd)
       (.insertBefore (.-parentElement node) new-node node)
@@ -525,16 +525,16 @@ re-tag #"([^\s\.#]+)(?:#([^\s\.#]+))?(?:\.([^\s#]+))?")
   {:pre [(every? vector? funcs)]}
   [dom & funcs]
 
-  (let [convert? (or (string? dom) (vector? dom))
-        dom (to-doc-frag dom)]
-    (doseq [[css cmd op] funcs]
-      (let [[cmd op] (if (nil? op) [:! cmd] [cmd op])]
-        (doseq [node (do-select dom css)] (alter op cmd node))
-        )
-      )
-    (if convert?
-      (to-hiccup dom)
-      dom)
-    ))
+  (if(satisfies? IDeref dom)
+    (apply xform @dom funcs)
+    (let [convert? (or (string? dom) (vector? dom))
+          dom (to-doc-frag dom)]
+      (doseq [[css cmd op] funcs]
+        (let [[cmd op] (if (nil? op) [:! cmd] [cmd op])]
+          (doseq [node (do-select dom css)] (alter op cmd node))))
+      (if convert?
+        (to-hiccup dom)
+        dom)
+      )))
 
 

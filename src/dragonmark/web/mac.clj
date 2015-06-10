@@ -5,10 +5,44 @@
 
 (defn dev? [] (env :dev))
 
+(def template-dir (atom "/templates/"))
+
+(def loading-text (atom "<div>loading</div>"))
+
+(def server-template-path (atom "/_templates/"))
+
 (defn load-template
   "Load a template from the /resources/templates directory"
   [name]
-  (-> (.getResource (.getClass "") (str "/templates/" name)) io/as-file slurp))
+  (-> (.getResource (.getClass "") (str @template-dir name)) io/as-file slurp))
+
+(defmacro set-template-dir
+  "This is a macro that sets the template dir... it's
+  called from cljs code, but changes the atom in Clojure/compile-time-land"
+  [dir]
+  (reset! template-dir dir)
+  `[~dir])
+
+(defmacro set-loading-text
+  "This is a macro that sets the default loading text... it's
+  called from cljs code, but changes the atom in Clojure/compile-time-land"
+  [text]
+  (reset! loading-text text)
+  `[~text])
+
+(defmacro set-server-template-path
+  "This is a macro that sets the path prefix for server template loading... it's
+  called from cljs code, but changes the atom in Clojure/compile-time-land"
+  [path]
+  (reset! server-template-path path)
+  `[~path])
+
+(defmacro set-template-dir
+  "This is a macro that sets the template dir... it's
+  called from cljs code, but changes the atom in Clojure/compile-time-land"
+  [dir]
+  (reset! template-dir dir)
+  `[~dir])
 
 (defmacro insert-template
   "This is used from ClojureScript to insert a template file
@@ -17,7 +51,7 @@
   right into the code. Useful for templates"
   [name]
   (if (dev?)
-    `(let [data# (reagent.core/atom "<div>loading</div>")
+    `(let [data# (reagent.core/atom ~(deref loading-text))
            cnt# (reagent.core/atom 0)]
        (letfn [(funcy#
                  []
@@ -27,7 +61,10 @@
                            (< 0 (count (.-watches data#))))
                      (let [req# (js/XMLHttpRequest.)]
                        (swap! cnt# inc)
-                       (.open req# "GET" (str "/_templates/" ~name "?param=" (dragonmark.util.core/next-guid)))
+                       (.open req# "GET" (str ~(deref server-template-path)
+                                              ~name 
+                                              "?param="
+                                              (dragonmark.util.core/next-guid)))
                        (.send req# nil)
                        (set!
                          (.-onreadystatechange req#)
