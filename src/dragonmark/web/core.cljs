@@ -30,7 +30,7 @@
 
 (extend-protocol ToHiccup
   js/DocumentFragment
-  (to-hiccup [frag] (to-hiccup (-> frag .-children first))))
+  (to-hiccup [frag] (to-hiccup (-> frag .-firstChild))))
 
 ;; all the potential DOM events. Needed
 ;; because `onxxx` are not attributes, but
