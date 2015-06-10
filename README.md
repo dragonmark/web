@@ -5,10 +5,10 @@ Clojure web development.
 
 ## Basic info
 
-[![Clojars Project](http://clojars.org/dragonmark/web/latest-version.svg)](http://clojars.org/dragonmark/circulate)
+[![Clojars Project](http://clojars.org/dragonmark/web/latest-version.svg)](http://clojars.org/dragonmark/web)
 
 The current build status:
-<a href="https://travis-ci.org/dragonmark/dragonmark">
+<a href="https://travis-ci.org/dragonmark/web">
 ![Build Status](https://travis-ci.org/dragonmark/web.svg?branch=develop)</a>
 
 ## Lift, **o'really?!?**
