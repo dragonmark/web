@@ -32,7 +32,7 @@
 (deftest
   replacement-hiccup2
   "replace the element with a hiccup template"
-  (let [r (xform html ["span" [:div {:onclick (fn [x] (+ x 1))} "moo"]])
+  (let [r (xform html ["span" [:div {:on-click (fn [x] (+ x 1))} "moo"]])
         func? (-> r second second :on-click)]
     (t/is (= 2 (func? 1)))))
 
