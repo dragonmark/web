@@ -501,30 +501,36 @@ re-tag #"([^\s\.#]+)(?:#([^\s\.#]+))?(?:\.([^\s#]+))?")
   [the-map cmd node]
   (let [attrs (.-attributes node)]
     (doseq [[key v] the-map]
-      (let [k (fixed-name key)]
+      (let [k (fixed-name key)
+            ]
         (if (nil? v)
           (.removeNamedItem attrs k)
-          (if (and (gstring/startsWith k "on")
-                   (fn? v))
-            (aset node k v)
-            (let [at (or (.getNamedItem attrs k)
-                         (let [new-at (.createAttribute js/document k)]
-                           (.setNamedItem attrs new-at)
-                           new-at)
-                         )
-                  old-str (.-value at)
 
-                  the-str (if (and (fn? v)
-                                   (not (gstring/startsWith k "on")))
-                            (v old-str) v)
-                  the-str (if (= "class" k) (str " " the-str " ") the-str)
-                  new-str (cond
-                            (append? key) (str old-str the-str)
-                            (prepend? key) (str the-str old-str)
-                            (remove? key) (.replace old-str (.trim the-str) "")
-                            :else the-str)]
-              (set! (.-value at) new-str)
-              )))))))
+          (let [at (or (.getNamedItem attrs k)
+                       (let [new-at (.createAttribute js/document k)]
+                         (.setNamedItem attrs new-at)
+                         new-at)
+                       )
+                old-str (.-value at)
+
+                the-str (cond
+                          (and (fn? v)
+                               (not (gstring/startsWith k "on")))
+                          (v old-str)
+
+                          (and (fn? v)
+                               (gstring/startsWith k "on"))
+                          (guid-for v)
+
+                          :else v)
+                the-str (if (= "class" k) (str " " the-str " ") the-str)
+                new-str (cond
+                          (append? key) (str old-str the-str)
+                          (prepend? key) (str the-str old-str)
+                          (remove? key) (.replace old-str (.trim the-str) "")
+                          :else the-str)]
+            (set! (.-value at) new-str)
+            ))))))
 
 (defn alter
   "Given a value, a command, and a node, do the right thing"

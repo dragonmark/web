@@ -10,10 +10,18 @@
 
 (def html [:div [:span {:id "dog"} "cat"]])
 
+(def h2 "<div><span id=\"dog\">cat</span></div>")
+
+(def h3 (atom h2))
+
+(def inputs [html h2 h3])
+
 (deftest
   passthru
   "Tests a simple passthrough with no changes"
-  (t/is (= html (xform html))))
+  (t/is (= html (xform html)))
+  (t/is (= html (xform h2)))
+  (t/is (= html (xform h3))))
 
 (deftest
   replacement
@@ -32,9 +40,18 @@
 (deftest
   replacement-hiccup2
   "replace the element with a hiccup template"
-  (let [r (xform html ["span" [:div {:on-click (fn [x] (+ x 1))} "moo"]])
-        func? (-> r second second :on-click)]
-    (t/is (= 2 (func? 1)))))
+  (doseq [html inputs]
+    (let [r (xform html ["span" [:div {:on-click (fn [x] (+ x 1))} "moo"]])
+          func? (-> r second second :on-click)]
+      (t/is (= 2 (func? 1))))))
+
+(deftest
+  func-passed
+  "Functions get passed"
+  (doseq [html inputs]
+    (let [r (xform html ["span" {:on-click (fn [x] (+ x 1))}])
+          func? (-> r second second :on-click)]
+      (t/is (= 2 (func? 1))))))
 
 (deftest
   many
@@ -54,14 +71,15 @@
 (deftest
   many-func2
   "Update the span with new new ids and new content"
-  (let [data ["foo" "bar" "baz"]
-        r (xform html ["span" (map #(comp (xf "." {:id %})
-                                          (xf "." :*> %)) data)])
-        ids (->> r rest (map second) (map :id))
-        content (->> r rest (map last))]
-    (t/is (= 4 (-> r second count)))
-    (t/is (= (vec content) data))
-    (t/is (= (vec ids) data))))
+  (doseq [html inputs]
+    (let [data ["foo" "bar" "baz"]
+          r (xform html ["span" (map #(comp (xf "." {:id %})
+                                            (xf "." :*> %)) data)])
+          ids (->> r rest (map second) (map :id))
+          content (->> r rest (map last))]
+      (t/is (= 4 (-> r second count)))
+      (t/is (= (vec content) data))
+      (t/is (= (vec ids) data)))))
 
 (deftest
   extra
