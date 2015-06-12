@@ -4,6 +4,7 @@
             [clojure.string :as s]
             [goog.string :as gstring]
             [goog.object]
+            [dragonmark.util.core :as du]
             [clojure.string :as string]))
 
 ;; Copied from Enfocus
@@ -35,46 +36,95 @@
 ;; all the potential DOM events. Needed
 ;; because `onxxx` are not attributes, but
 ;; the need to be discovered for conversion to hiccup
-(def dom-events
-  {"onunderflow"          :on-underflow, "ondatasetchanged" :on-datasetchanged, "oncontextmenu" :on-contextmenu,
-   "ondraggesture"        :on-draggesture, "onpointerover" :on-pointerover, "onrowinserted" :on-rowinserted,
-   "onfocus"              :on-focus, "onbeforeeditfocus" :on-beforeeditfocus, "onerror" :on-error, "onclose" :on-close,
-   "ondragend"            :on-dragend, "onchange" :on-change, "ondatasetcomplete" :on-datasetcomplete,
-   "onunload"             :on-unload, "onafterprint" :on-afterprint, "oncopy" :on-copy, "ondragdrop" :on-dragdrop,
-   "onoverflowchanged"    :on-overflowchanged, "onmouseover" :on-mouseover, "onafterupdate" :on-afterupdate,
-   "ondragleave"          :on-dragleave, "onbeforeupdate" :on-beforeupdate, "ondragenter" :on-dragenter,
-   "ondragstart"          :on-dragstart, "ondragover" :on-dragover, "onblur" :on-blur, "onscroll" :on-scroll,
-   "onlosecapture"        :on-losecapture, "onrowexit" :on-rowexit, "onbeforeunload" :on-beforeunload,
-   "onpropertychange"     :on-propertychange, "onpointerout" :on-pointerout, "onrowsdelete" :on-rowsdelete,
-   "onbeforepaste"        :on-beforepaste, "onbounce" :on-bounce, "onselectstart" :on-selectstart,
-   "ondblclick"           :on-dblclick, "onclick" :on-click, "onresize" :on-resize,
-   "onpointercancel"      :on-pointercancel, "onreadystatechange" :on-readystatechange,
-   "onpopuphiding"        :on-popuphiding, "onreset" :on-reset, "onbeforeprint" :on-beforeprint,
-   "onpopupshown"         :on-popupshown, "onmousedown" :on-mousedown, "onmousemove" :on-mousemove,
-   "onstart"              :on-start, "onselect" :on-select, "ondragexit" :on-dragexit,
-   "onlostpointercapture" :on-lostpointercapture, "onload" :on-load,
-   "ondataavailable"      :on-dataavailable, "onpointermove" :on-pointermove,
-   "onhelp"               :on-help, "onbeforecopy" :on-beforecopy, "onpopupshowing" :on-popupshowing,
-   "onbeforecut"          :on-beforecut, "onpaste" :on-paste, "onpointerleave" :on-pointerleave,
-   "onsubmit"             :on-submit, "oncellchange" :on-cellchange, "ondrop" :on-drop, "onkeydown" :on-keydown,
-   "oninput"              :on-input, "onpointerenter" :on-pointerenter, "oncut" :on-cut, "onfinish" :on-finish,
-   "onpointerup"          :on-pointerup, "onoverflow" :on-overflow, "oncommandupdate" :on-commandupdate,
-   "onfilterchange"       :on-filterchange, "onkeyup" :on-keyup, "onabort" :on-abort, "onkeypress" :on-keypress,
-   "onerrorupdate"        :on-errorupdate, "onmouseout" :on-mouseout, "onpopuphidden" :on-popuphidden,
-   "ongotpointercapture"  :on-gotpointercapture, "onmouseup" :on-mouseup, "onrowenter" :on-rowenter, "ondrag" :on-drag})
+;(def dom-events
+;  {"onunderflow"          :on-underflow, "ondatasetchanged" :on-data-set-changed,
+;   "oncontextmenu" :on-context-menu,
+;   "ondraggesture"        :on-drag-gesture, "onpointerover" :on-pointer-over,
+;   "onrowinserted" :on-row-inserted,
+;   "onfocus"              :on-focus, "onbeforeeditfocus" :on-before-edit-focus,
+;   "onerror" :on-error, "onclose" :on-close,
+;   "ondragend"            :on-drag-end, "onchange" :on-change,
+;   "ondatasetcomplete" :on-data-set-complete,
+;   "onunload"             :on-unload, "onafterprint" :on-after-print,
+;   "oncopy" :on-copy, "ondragdrop" :on-drag-drop,
+;   "onoverflowchanged"    :on-overflow-changed,
+;   "onmouseover" :on-mouse-over, "onafterupdate" :on-after-update,
+;   "ondragleave"          :on-drag-leave, "onbeforeupdate" :on-before-update,
+;   "ondragenter" :on-drag-enter,
+;   "ondragstart"          :on-drag-start, "ondragover" :on-drag-over,
+;   "onblur" :on-blur, "onscroll" :on-scroll,
+;   "onlosecapture"        :on-lose-capture, "onrowexit" :on-row-exit,
+;   "onbeforeunload" :on-before-unload,
+;   "onpropertychange"     :on-property-change, "onpointerout" :on-pointer-out,
+;   "onrowsdelete" :on-rows-delete,
+;   "onbeforepaste"        :on-before-paste, "onbounce" :on-bounce,
+;   "onselectstart" :on-select-start,
+;   "ondoublclick"           :on-doubl-click, "onclick" :on-click, "onresize" :on-resize,
+;   "onpointercancel"      :on-pointer-cancel, "onreadystatechange" :on-ready-state-change,
+;   "onpopuphiding"        :on-popup-hiding, "onreset" :on-reset,
+;   "onbeforeprint" :on-before-print,
+;   "onpopupshown"         :on-popup-shown, "onmousedown" :on-mouse-down,
+;   "onmousemove" :on-mouse-move,
+;   "onstart"              :on-start, "onselect" :on-select, "ondragexit" :on-drag-exit,
+;   "onlostpointercapture" :on-lost-pointer-capture, "onload" :on-load,
+;   "ondataavailable"      :on-data-available, "onpointermove" :on-pointer-move,
+;   "onhelp"               :on-help, "onbeforecopy" :on-before-copy,
+;   "onpopupshowing" :on-popup-showing,
+;   "onbeforecut"          :on-before-cut, "onpaste" :on-paste, "onpointerleave" :on-pointer-leave,
+;   "onsubmit"             :on-submit, "oncellchange" :on-cellchange,
+;   "ondrop" :on-drop, "onkeydown" :on-keydown,
+;   "oninput"              :on-input, "onpointerenter" :on-pointer-enter,
+;   "oncut" :on-cut, "onfinish" :on-finish,
+;   "onpointerup"          :on-pointer-up, "onoverflow" :on-overflow,
+;   "oncommandupdate" :on-command-update,
+;   "onfilterchange"       :on-filter-change, "onkeyup" :on-key-up,
+;   "onabort" :on-abort, "onkeypress" :on-key-press,
+;   "onerrorupdate"        :on-errorupdate, "onmouseout" :on-mouse-out,
+;   "onpopuphidden" :on-popuphidden,
+;   "ongotpointercapture"  :on-got-pointer-capture,
+;   "onmouseup" :on-mouseup, "onrowenter" :on-row-enter, "ondrag" :on-drag})
+;
+;;; Keys for dom event names
+;(def dom-event-keys (keys dom-events))
+;
+;(defn- fix-click
+;  "Go through all the possible DOM events and if there's an event, turn it into an attribute"
+;  [attr-map elem]
+;  (reduce (fn [m k]
+;            (if-let [v (aget elem k)]
+;              (assoc m (dom-events k) v)
+;              m
+;              ))
+;          attr-map dom-event-keys))
 
-;; Keys for dom event names
-(def dom-event-keys (keys dom-events))
+(def ^{:private true
+       :dynamic true}  **funcs** nil)
 
-(defn- fix-click
-  "Go through all the possible DOM events and if there's an event, turn it into an attribute"
-  [attr-map elem]
-  (reduce (fn [m k]
-            (if-let [v (aget elem k)]
-              (assoc m (dom-events k) v)
-              m
-              ))
-          attr-map dom-event-keys))
+(defn- wrap-funcs
+  "This function will do the binding with the function lookup if it's not already bound"
+  [to-do]
+
+  (if (and **funcs** (satisfies? IDeref **funcs**))
+    (to-do)
+    (binding [**funcs** (atom {})]
+      (to-do))))
+
+(defn- find-func
+  "Looks up a key at returns the associated func if it exists"
+  [key]
+  (or
+    (some-> **funcs** deref (get key key))
+    key))
+
+(defn- guid-for
+  "Swaps the value for a guid"
+  [value]
+  (if (and **funcs** (satisfies? IDeref **funcs**))
+    (let [guid (du/next-guid)]
+      (swap! **funcs** assoc guid value)
+      guid)
+    value
+    ))
 
 (extend-protocol ToHiccup
   js/Element
@@ -83,7 +133,8 @@
       identity
       (into
         [(keyword (.-localName elem))
-         (fix-click (to-hiccup (.-attributes elem)) elem)]
+         (to-hiccup (.-attributes elem))
+         ]
         (map to-hiccup (filter identity (.-childNodes elem)))
         ))))
 
@@ -123,7 +174,7 @@
               (fn [i]
                 (let [at (.item attrs i)
                       key (-> at .-name keyword)
-                      value (-> at .-value)]
+                      value (-> at .-value find-func)]
                   (if (= :style key)
                     [key (style->map value)]
                     [key value])
@@ -207,15 +258,14 @@ re-tag #"([^\s\.#]+)(?:#([^\s\.#]+))?(?:\.([^\s#]+))?")
            (dom-attr elem k v))
          elem))))
   ([elem k v]
-   (let [ks (name k)]
-     (if (and                                               ;; check of on* functions and set them
-           (gstring/startsWith ks "on")
-           (not (string? v)))
-       (aset elem
-             (if (gstring/startsWith ks "on-")
-               (str "on" (.substring ks 3))
-               ks) v)
-       (. elem (setAttribute (name k) v)))
+   (let [ks (name k)
+         v (if (and
+                 (gstring/startsWith ks "on")
+                 (not (string? v)))
+             (guid-for v)
+             v
+             )]
+     (. elem (setAttribute (name k) v))
      elem)))
 
 (defn- normalize-map-attrs [map-attrs]
@@ -502,13 +552,16 @@ re-tag #"([^\s\.#]+)(?:#([^\s\.#]+))?(?:\.([^\s#]+))?")
   that takes the query and applies the changes"
   ([css op] (xf css :! op))
   ([css cmd op]
-   (with-meta (fn [dom]
-                (let [convert? (or (string? dom) (vector? dom))
-                      dom (to-doc-frag dom)]
-                  (doseq [node (do-select dom css)] (alter op cmd node))
-                  (if convert?
-                    (to-hiccup dom)
-                    dom)))
+   (with-meta
+     (fn [dom]
+       (wrap-funcs
+         (fn []
+           (let [convert? (or (string? dom) (vector? dom))
+                 dom (to-doc-frag dom)]
+             (doseq [node (do-select dom css)] (alter op cmd node))
+             (if convert?
+               (to-hiccup dom)
+               dom)))))
      :raw)))
 
 
@@ -525,16 +578,16 @@ re-tag #"([^\s\.#]+)(?:#([^\s\.#]+))?(?:\.([^\s#]+))?")
   {:pre [(every? vector? funcs)]}
   [dom & funcs]
 
-  (if(satisfies? IDeref dom)
-    (apply xform @dom funcs)
-    (let [convert? (or (string? dom) (vector? dom))
-          dom (to-doc-frag dom)]
-      (doseq [[css cmd op] funcs]
-        (let [[cmd op] (if (nil? op) [:! cmd] [cmd op])]
-          (doseq [node (do-select dom css)] (alter op cmd node))))
-      (if convert?
-        (to-hiccup dom)
-        dom)
-      )))
-
-
+  (wrap-funcs
+    (fn []
+      (if (satisfies? IDeref dom)
+        (apply xform @dom funcs)
+        (let [convert? (or (string? dom) (vector? dom))
+              dom (to-doc-frag dom)]
+          (doseq [[css cmd op] funcs]
+            (let [[cmd op] (if (nil? op) [:! cmd] [cmd op])]
+              (doseq [node (do-select dom css)] (alter op cmd node))))
+          (if convert?
+            (to-hiccup dom)
+            dom)
+          )))))

@@ -1,4 +1,4 @@
-(defproject dragonmark/web "0.1.3"
+(defproject dragonmark/web "0.1.4"
   :description "Tools for Clojure web project"
   :url "https://github.com/dragonmark/web"
   :license {:name "Eclipse Public License"
@@ -33,15 +33,15 @@
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"
                                     "resources/test/compiled.js"]
 
-  :cljsbuild 
+  :cljsbuild
   {
 
-   :builds 
+   :builds
    [{:id "dev"
      :source-paths ["src" "test"]
 
      :figwheel true
-     
+
      :compiler {:main dragonmark.web.core
                 :asset-path "js/compiled/out"
                 :output-to "resources/public/js/compiled/dm.js"
@@ -63,7 +63,7 @@
    {"test" ["phantomjs"
             "resources/test/test.js"
             "resources/test/test.html"]}}
-  
+
   :figwheel {
              :http-server-root "public" ;; default and assumes "resources"
              :server-port 3449 ;; default
@@ -91,7 +91,7 @@
              ;; :repl false
 
              ;; to configure a different figwheel logfile path
-             ;; :server-logfile "tmp/logs/figwheel-logfile.log" 
+             ;; :server-logfile "tmp/logs/figwheel-logfile.log"
              }
 
   :aliases
