@@ -33,70 +33,6 @@
   js/DocumentFragment
   (to-hiccup [frag] (to-hiccup (-> frag .-firstChild))))
 
-;; all the potential DOM events. Needed
-;; because `onxxx` are not attributes, but
-;; the need to be discovered for conversion to hiccup
-;(def dom-events
-;  {"onunderflow"          :on-underflow, "ondatasetchanged" :on-data-set-changed,
-;   "oncontextmenu" :on-context-menu,
-;   "ondraggesture"        :on-drag-gesture, "onpointerover" :on-pointer-over,
-;   "onrowinserted" :on-row-inserted,
-;   "onfocus"              :on-focus, "onbeforeeditfocus" :on-before-edit-focus,
-;   "onerror" :on-error, "onclose" :on-close,
-;   "ondragend"            :on-drag-end, "onchange" :on-change,
-;   "ondatasetcomplete" :on-data-set-complete,
-;   "onunload"             :on-unload, "onafterprint" :on-after-print,
-;   "oncopy" :on-copy, "ondragdrop" :on-drag-drop,
-;   "onoverflowchanged"    :on-overflow-changed,
-;   "onmouseover" :on-mouse-over, "onafterupdate" :on-after-update,
-;   "ondragleave"          :on-drag-leave, "onbeforeupdate" :on-before-update,
-;   "ondragenter" :on-drag-enter,
-;   "ondragstart"          :on-drag-start, "ondragover" :on-drag-over,
-;   "onblur" :on-blur, "onscroll" :on-scroll,
-;   "onlosecapture"        :on-lose-capture, "onrowexit" :on-row-exit,
-;   "onbeforeunload" :on-before-unload,
-;   "onpropertychange"     :on-property-change, "onpointerout" :on-pointer-out,
-;   "onrowsdelete" :on-rows-delete,
-;   "onbeforepaste"        :on-before-paste, "onbounce" :on-bounce,
-;   "onselectstart" :on-select-start,
-;   "ondoublclick"           :on-doubl-click, "onclick" :on-click, "onresize" :on-resize,
-;   "onpointercancel"      :on-pointer-cancel, "onreadystatechange" :on-ready-state-change,
-;   "onpopuphiding"        :on-popup-hiding, "onreset" :on-reset,
-;   "onbeforeprint" :on-before-print,
-;   "onpopupshown"         :on-popup-shown, "onmousedown" :on-mouse-down,
-;   "onmousemove" :on-mouse-move,
-;   "onstart"              :on-start, "onselect" :on-select, "ondragexit" :on-drag-exit,
-;   "onlostpointercapture" :on-lost-pointer-capture, "onload" :on-load,
-;   "ondataavailable"      :on-data-available, "onpointermove" :on-pointer-move,
-;   "onhelp"               :on-help, "onbeforecopy" :on-before-copy,
-;   "onpopupshowing" :on-popup-showing,
-;   "onbeforecut"          :on-before-cut, "onpaste" :on-paste, "onpointerleave" :on-pointer-leave,
-;   "onsubmit"             :on-submit, "oncellchange" :on-cellchange,
-;   "ondrop" :on-drop, "onkeydown" :on-keydown,
-;   "oninput"              :on-input, "onpointerenter" :on-pointer-enter,
-;   "oncut" :on-cut, "onfinish" :on-finish,
-;   "onpointerup"          :on-pointer-up, "onoverflow" :on-overflow,
-;   "oncommandupdate" :on-command-update,
-;   "onfilterchange"       :on-filter-change, "onkeyup" :on-key-up,
-;   "onabort" :on-abort, "onkeypress" :on-key-press,
-;   "onerrorupdate"        :on-errorupdate, "onmouseout" :on-mouse-out,
-;   "onpopuphidden" :on-popuphidden,
-;   "ongotpointercapture"  :on-got-pointer-capture,
-;   "onmouseup" :on-mouseup, "onrowenter" :on-row-enter, "ondrag" :on-drag})
-;
-;;; Keys for dom event names
-;(def dom-event-keys (keys dom-events))
-;
-;(defn- fix-click
-;  "Go through all the possible DOM events and if there's an event, turn it into an attribute"
-;  [attr-map elem]
-;  (reduce (fn [m k]
-;            (if-let [v (aget elem k)]
-;              (assoc m (dom-events k) v)
-;              m
-;              ))
-;          attr-map dom-event-keys))
-
 (def ^{:private true
        :dynamic true}  **funcs** nil)
 
@@ -129,14 +65,18 @@
 (extend-protocol ToHiccup
   js/Element
   (to-hiccup [elem]
-    (filterv
-      identity
-      (into
-        [(keyword (.-localName elem))
-         (to-hiccup (.-attributes elem))
-         ]
-        (map to-hiccup (filter identity (.-childNodes elem)))
-        ))))
+    (let [elem-name (.-localName elem)]
+      (if (and (= "script" elem-name)
+               (.getAttribute elem "magic"))
+        (find-func (.getAttribute elem "magic"))            ;; retrieve an unchaged function hiccup node
+        (filterv
+          identity
+          (into
+            [(keyword elem-name)
+             (to-hiccup (.-attributes elem))
+             ]
+            (map to-hiccup (filter identity (.-childNodes elem)))
+            ))))))
 
 ;;; from http://stackoverflow.com/questions/28257750/how-to-convert-html-tag-with-style-to-hiccup-react-problems
 
@@ -219,7 +159,7 @@
   (and
     (boolean val) ;; not nil
     (vector? val)
-    (some-> val first keyword?)))
+    (some-> val first ifn?)))
 
 ;; copied from https://github.com/ibdknox/crate
 
@@ -302,11 +242,20 @@ re-tag #"([^\s\.#]+)(?:#([^\s\.#]+))?(?:\.([^\s#]+))?")
       (.createElement js/document tag))))
 
 (defn elem-factory [tag-def]
-  (let [[nsp tag attrs content] (normalize-element tag-def)
-        elem (create-elem nsp tag)]
-    (dom-attr elem attrs)
-    (as-content elem content)
-    elem) )
+  (if (and
+        (vector? tag-def)
+        (not (-> tag-def first keyword?))
+        (-> tag-def first fn?))
+    ;; if there's a function in the beginning of the Hiccup def, then put it in a script tag that'll
+    ;; get reified unchanged
+    (let [elem (.createElement js/document "script")]
+      (.setAttribute elem "magic" (guid-for tag-def))
+      elem)
+    (let [[nsp tag attrs content] (normalize-element tag-def)
+          elem (create-elem nsp tag)]
+      (dom-attr elem attrs)
+      (as-content elem content)
+      elem)))
 
 (defn html [& tags]
   (let [res (map elem-factory tags)]

@@ -81,6 +81,21 @@
       (t/is (= (vec content) data))
       (t/is (= (vec ids) data)))))
 
+(defn funky-stuff
+  []
+  [:div "I'm a late bound funky thing"])
+
+(deftest
+  funky-kid
+  "Insert a child with a function"
+
+  (doseq [html inputs]
+    (let [r (xform html ["span" [funky-stuff]])]
+      (is (= funky-stuff (-> r second first)))
+      ))
+  )
+
+
 (deftest
   extra
   "extra tests"
