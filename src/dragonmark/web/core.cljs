@@ -25,6 +25,13 @@
 
 ;; done with stuff copied from Enfocus
 
+(defn- better-seq
+  "A version of seq that returns an empty list rather than nil"
+  [v]
+  (if-let [ret (seq v)]
+    ret
+    (list)))
+
 (defprotocol ToHiccup
   "convert things to Hiccup format"
   (to-hiccup [value]))
@@ -309,7 +316,7 @@ re-tag #"([^\s\.#]+)(?:#([^\s\.#]+))?(?:\.([^\s#]+))?")
   [vec cmd node]
   (if (hiccup? vec)
     (alter (to-node vec) cmd node)
-    (alter (seq vec) cmd node)
+    (alter (better-seq vec) cmd node)
     ))
 
 (defn- alter-seq
