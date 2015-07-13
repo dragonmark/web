@@ -1,4 +1,4 @@
-(defproject dragonmark/web "0.1.7"
+(defproject dragonmark/web "0.1.8"
   :description "Tools for Clojure web project"
   :url "https://github.com/dragonmark/web"
   :license {:name "Eclipse Public License"
@@ -6,9 +6,9 @@
 
   :jvm-opts ^:replace ["-Xms768m" "-Xmx768m" "-server"]
 
-  :dependencies [[org.clojure/clojure "1.7.0-RC1"]
+  :dependencies [[org.clojure/clojure "1.7.0"]
+                 [org.clojure/clojurescript "0.0-3308" :scope "provided"]
                  [dragonmark/util "0.1.1"  :exclusions [org.clojure/clojure]]
-                 [org.clojure/clojurescript "0.0-3291"]
                  [domina "1.0.3"]
                  [environ "1.0.0"]]
 

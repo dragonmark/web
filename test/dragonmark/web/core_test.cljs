@@ -10,7 +10,7 @@
 
 (def html [:div [:span {:id "dog"} "cat"]])
 
-(def h2 "<div><span id=\"dog\">cat</span></div>")
+(def h2 "<div><!-- I'm a comment --><span id=\"dog\">cat</span></div>")
 
 (def h3 (atom h2))
 

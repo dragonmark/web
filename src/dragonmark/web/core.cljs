@@ -69,6 +69,14 @@
     value
     ))
 
+
+(extend-protocol ToHiccup
+  js/Comment
+  (to-hiccup [comment]
+    nil
+    )
+  )
+
 (extend-protocol ToHiccup
   js/Element
   (to-hiccup [elem]
