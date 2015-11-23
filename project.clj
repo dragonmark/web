@@ -1,4 +1,4 @@
-(defproject dragonmark/web "0.1.8"
+(defproject dragonmark/web "0.1.9"
   :description "Tools for Clojure web project"
   :url "https://github.com/dragonmark/web"
   :license {:name "Eclipse Public License"

@@ -220,7 +220,11 @@ re-tag #"([^\s\.#]+)(?:#([^\s\.#]+))?(?:\.([^\s#]+))?")
              (guid-for v)
              v
              )]
-     (. elem (setAttribute (name k) v))
+     (if (= :className k)
+       (let [cur (. elem (getAttribute "class"))
+             cur (if (nil? cur) "" cur)]
+         (. elem (setAttribute "class" (str cur " " v))))
+       (. elem (setAttribute (name k) v)))
      elem)))
 
 (defn- normalize-map-attrs [map-attrs]
